@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>単振動シミュレーション（停止・再生付き）</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/addons/p5.dom.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+let ball;
+let kSlider;
+let resetButton, toggleButton;
+let fixedX;
+let L0;
+let originX;
+let m = 10.0;
+let dragging = false;
+let isRunning = true;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  fixedX = width / 6;
+  L0 = windowHeight / 2;
+  originX = fixedX + L0;
+
+  ball = {
+    x: originX,
+    v: 0,
+    a: 0,
+    r: 30
+  };
+
+  textSize(16);
+  createP("ばね定数 k（N/m）").position(20, 10);
+  kSlider = createSlider(0.05, 1.0, 0.2, 0.01).position(20, 40);
+
+  resetButton = createButton("リセット").position(20, 80);
+  resetButton.mousePressed(resetBall);
+
+  toggleButton = createButton("⏸ 停止").position(100, 80);
+  toggleButton.mousePressed(toggleMotion);
+}
+
+function draw() {
+  background(255);
+  let k = kSlider.value();
+
+  // 固定点と振動中心
+  stroke(150);
+  line(fixedX, 0, fixedX, height);
+  noStroke();
+  fill(0);
+  text("固定点（壁）", fixedX - 40, 30);
+
+  stroke(100, 150, 255);
+  line(originX, 0, originX, height);
+  noStroke();
+  fill(0, 100, 255);
+  text("振動中心（自然長）", originX - 60, 50);
+
+  // ばね描画
+  drawHelicalSpring(fixedX, ball.x, height / 2, 30, 10);
+
+  // 小球描画
+  fill(200, 0, 0);
+  stroke(0);
+  ellipse(ball.x, height / 2, ball.r * 2);
+
+  if (!dragging && isRunning) {
+    let displacement = ball.x - originX;
+    let force = -k * displacement;
+    ball.a = force / m;
+    ball.v += ball.a;
+    ball.x += ball.v;
+
+    if (ball.x < fixedX + ball.r) {
+      ball.x = fixedX + ball.r;
+      ball.v = 0;
+    }
+  }
+
+  // ラベル表示
+  fill(0);
+  noStroke();
+  text(`k = ${k.toFixed(2)} N/m`, 20, height - 60);
+  text(`m = 10.00 kg（固定）`, 20, height - 40);
+}
+
+function drawHelicalSpring(x1, x2, y, coils, radius) {
+  stroke(0);
+  fill(150);
+  let dx = (x2 - x1) / coils;
+  for (let i = 0; i <= coils; i++) {
+    let cx = x1 + i * dx;
+    ellipse(cx, y, radius, radius);
+  }
+}
+
+function mousePressed() {
+  if (dist(mouseX, mouseY, ball.x, height / 2) < ball.r) {
+    dragging = true;
+  }
+}
+
+function mouseDragged() {
+  if (dragging) {
+    ball.x = constrain(mouseX, fixedX + ball.r, width - ball.r);
+    ball.v = 0;
+  }
+}
+
+function mouseReleased() {
+  dragging = false;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  fixedX = width / 6;
+  L0 = windowHeight / 2;
+  originX = fixedX + L0;
+  resetBall();
+}
+
+function resetBall() {
+  ball.x = originX;
+  ball.v = 0;
+}
+
+function toggleMotion() {
+  isRunning = !isRunning;
+  toggleButton.html(isRunning ? "⏸ 停止" : "▶ 再生");
+}
+</script>
+</body>
+</html>
