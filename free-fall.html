@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>自由落下シミュレーション</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/addons/p5.dom.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+let ball;
+let groundY;
+let g = 2; // 実際の重力加速度（描画用）
+let dragging = false;
+let isRunning = true;
+let resetButton, toggleButton;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  groundY = height - 50;
+
+  ball = {
+    x: width / 2,
+    y: groundY - 30,
+    v: 0,
+    a: 0,
+    r: 30
+  };
+
+  textSize(16);
+  textStyle(NORMAL);
+  resetButton = createButton("リセット").position(20, 20);
+  resetButton.mousePressed(resetBall);
+
+  toggleButton = createButton("⏸ 停止").position(100, 20);
+  toggleButton.mousePressed(toggleMotion);
+}
+
+function draw() {
+  background(255);
+
+  // 地面の描画
+  stroke(150);
+  fill(200);
+  rect(0, groundY, width, height - groundY);
+
+  // 地面ラベル
+  noStroke();
+  fill(0);
+  textAlign(LEFT);
+  textStyle(NORMAL);
+  text("地面", 20, groundY - 20);
+
+  // 小球の描画
+  fill(255, 100, 100);
+  stroke(0);
+  ellipse(ball.x, ball.y, ball.r * 2);
+
+  // gの表示（右上）
+  push();
+  textAlign(RIGHT);
+  textStyle(NORMAL);
+  fill(0);
+  text("g = 9.8 m/s²", width - 20, 60);
+  pop();
+
+  // 速度ベクトルを右上に表示
+  drawVelocityArrow(width - 60, 100, ball.v);
+
+  if (!dragging && isRunning) {
+    ball.a = g;
+    ball.v += ball.a;
+    ball.y += ball.v;
+
+    if (ball.y >= groundY - ball.r) {
+      ball.y = groundY - ball.r;
+      ball.v = 0;
+      ball.a = 0;
+    }
+  }
+}
+
+function drawVelocityArrow(x, y, velocity) {
+  let scaleFactor = 10;
+  let len = velocity * scaleFactor;
+
+  push();
+  textAlign(CENTER);
+  textStyle(NORMAL);
+  fill(0);
+  noStroke();
+  text("速さ", x, y - 10);
+
+  if (len > 0.5) {
+    stroke(0, 150, 255);
+    strokeWeight(2);
+    line(x, y, x, y + len);
+    fill(0, 150, 255);
+    noStroke();
+    triangle(x - 5, y + len - 10, x + 5, y + len - 10, x, y + len);
+  }
+  pop();
+}
+
+function mousePressed() {
+  if (dist(mouseX, mouseY, ball.x, ball.y) < ball.r) {
+    dragging = true;
+  }
+}
+
+function mouseDragged() {
+  if (dragging) {
+    ball.y = constrain(mouseY, 0 + ball.r, groundY - ball.r);
+    ball.v = 0;
+  }
+}
+
+function mouseReleased() {
+  dragging = false;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  groundY = height - 50;
+  resetBall();
+}
+
+function resetBall() {
+  ball.y = groundY - ball.r;
+  ball.v = 0;
+  ball.a = 0;
+}
+
+function toggleMotion() {
+  isRunning = !isRunning;
+  toggleButton.html(isRunning ? "⏸ 停止" : "▶ 再生");
+}
+</script>
+</body>
+</html>
