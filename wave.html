@@ -74,9 +74,11 @@
       }]
     };
 
-    Plotly.newPlot("graph", data, layout).then(() => {
-      Plotly.addFrames("graph", frames);
-    });
+    Plotly.newPlot("graph", data, layout, {
+  displaylogo: false
+}).then(() => {
+  Plotly.addFrames("graph", frames);
+});
   </script>
 
 </body>
