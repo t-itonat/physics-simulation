@@ -28,9 +28,9 @@
 
   <script>
     // 波のパラメータ
-    const A = 1;        // 振幅
-    const k = 2 * Math.PI / 5; // 波数
-    const omega = 0.2;  // 角周波数
+    const A = 1;
+    const k = 2 * Math.PI / 5;
+    const omega = 0.2;
 
     // x軸
     const x = [];
@@ -74,12 +74,15 @@
       }]
     };
 
-   Plotly.newPlot("graph", data, layout, {
-  displaylogo: false,
-  modeBarButtonsToRemove: ["toImage"]
-}).then(() => {
-  Plotly.addFrames("graph", frames);
-});
+    // ★ ロゴだけ確実に消す設定（最新版）
+    const config = {
+      displaylogo: false,
+      modeBarButtonsToRemove: ["toImage"]
+    };
+
+    Plotly.newPlot("graph", data, layout, config).then(() => {
+      Plotly.addFrames("graph", frames);
+    });
   </script>
 
 </body>
