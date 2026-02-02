@@ -1,0 +1,53 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<iframe src="wave.html" class="w-full h-[500px] rounded-xl shadow"></iframe>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物理シミュレーション教材</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-600 text-white py-6 shadow">
+    <div class="max-w-4xl mx-auto px-4">
+      <h1 class="text-3xl font-bold">物理シミュレーション教材</h1>
+      <p class="text-indigo-200 mt-1">Python × Plotly × Tailwind</p>
+    </div>
+  </header>
+
+  <!-- メイン -->
+  <main class="max-w-4xl mx-auto px-4 py-10 space-y-12">
+
+    <!-- セクション：波のシミュレーション -->
+    <section class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-2xl font-bold mb-4">波のシミュレーション</h2>
+      <p class="text-gray-600 mb-6">
+        位相・振幅・波長の変化を視覚的に理解できます。
+      </p>
+
+      <iframe src="wave.html"
+              class="w-full h-[500px] rounded-xl border shadow">
+      </iframe>
+    </section>
+
+    <!-- セクション：追加シミュレーション -->
+    <section class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-2xl font-bold mb-4">単振動（準備中）</h2>
+      <p class="text-gray-600">
+        ここに別の Plotly アニメーションを追加できます。
+      </p>
+    </section>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="text-center text-gray-500 py-6">
+    © 2026 Physics Simulations
+  </footer>
+
+</body>
+</html>
