@@ -74,8 +74,9 @@
       }]
     };
 
-    Plotly.newPlot("graph", data, layout, {
-  displaylogo: false
+   Plotly.newPlot("graph", data, layout, {
+  displaylogo: false,
+  modeBarButtonsToRemove: ["toImage"]
 }).then(() => {
   Plotly.addFrames("graph", frames);
 });
