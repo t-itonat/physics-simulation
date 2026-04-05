@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>立体的な円形波（フルスクリーン）</title>
+<title>立体的な円形波（濃い色・白背景）</title>
 <style>
   body {
     margin: 0;
-    background: #fff; /* 白背景 */
+    background: #fff;
     overflow: hidden;
   }
   canvas {
@@ -27,8 +27,8 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-const k = 0.04;     // 波の細かさ
-const omega = 0.06; // 進む速さ
+const k = 0.04;
+const omega = 0.06;
 let t = 0;
 
 // 光の方向（右上から）
@@ -45,7 +45,7 @@ function draw() {
   const w = canvas.width;
   const h = canvas.height;
   const cx = w / 2;
-  const cy = h / 2 + 80; // 視点を少し下げると立体感UP
+  const cy = h / 2 + 80;
 
   const img = ctx.createImageData(w, h);
   const data = img.data;
@@ -55,26 +55,23 @@ function draw() {
 
       const z = height(x, y, cx, cy, t);
 
-      // 法線近似
       const dzdx = height(x+1, y, cx, cy, t) - height(x-1, y, cx, cy, t);
       const dzdy = height(x, y+1, cx, cy, t) - height(x, y-1, cx, cy, t);
 
-      // 法線ベクトル
       const nx = -dzdx;
       const ny = -dzdy;
       const nz = 1;
 
-      // 正規化
       const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
       const n = { x: nx/len, y: ny/len, z: nz/len };
 
-      // 光との内積
       const brightness = Math.max(0, n.x*light.x + n.y*light.y + n.z*light.z);
 
-      // 青系の陰影
-      const rCol = 180 + brightness * 60;
-      const gCol = 200 + brightness * 40;
-      const bCol = 255;
+      // ★ 色を濃くしてコントラストUP
+      const base = 80;  // 影の濃さ（小さいほど濃い）
+      const rCol = base + brightness * 40;
+      const gCol = base + brightness * 80;
+      const bCol = 180 + brightness * 75;
 
       const idx = (y * w + x) * 4;
       data[idx] = rCol;
