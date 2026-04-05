@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Water Ripple Wave</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 0 40px rgba(0, 150, 255, 0.7);
+      background: radial-gradient(circle at center, #001020 0%, #000000 70%);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="wave"></canvas>
+  <script>
+    const canvas = document.getElementById('wave');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      const size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+      canvas.width = size;
+      canvas.height = size;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const cx = () => canvas.width / 2;
+    const cy = () => canvas.height / 2;
+
+    let t = 0;
+
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const centerX = cx();
+      const centerY = cy();
+      const img = ctx.createImageData(w, h);
+      const data = img.data;
+
+      const maxR = Math.min(w, h) * 0.5;
+      const wavelength = maxR * 0.15;
+      const speed = 0.06;
+      const amplitude = 18;
+
+      // 疑似ライト（斜め上から）
+      const lightDir = { x: -0.4, y: -0.7, z: 0.6 };
+      const len = Math.hypot(lightDir.x, lightDir.y, lightDir.z);
+      lightDir.x /= len; lightDir.y /= len; lightDir.z /= len;
+
+      for (let y = 0; y < h; y++) {
+        const dy = y - centerY;
+        for (let x = 0; x < w; x++) {
+          const dx = x - centerX;
+          const r = Math.hypot(dx, dy);
+
+          const idx = (y * w + x) * 4;
+
+          if (r > maxR) {
+            // 円の外は透明っぽく
+            data[idx + 0] = 0;
+            data[idx + 1] = 0;
+            data[idx + 2] = 0;
+            data[idx + 3] = 255;
+            continue;
+          }
+
+          // 波の高さ（減衰付き）
+          const phase = (r / wavelength) - t * speed * 10;
+          const decay = Math.exp(-r / (maxR * 0.9));
+          const height = Math.sin(phase * 2 * Math.PI) * amplitude * decay;
+
+          // 高さの勾配を近似して法線を作る
+          const drdx = dx === 0 ? 0 : (dx / r);
+          const drdy = dy === 0 ? 0 : (dy / r);
+          const dHeight_dr = Math.cos(phase * 2 * Math.PI) * (2 * Math.PI / wavelength) * amplitude * decay
+                             - Math.sin(phase * 2 * Math.PI) * amplitude * decay / (maxR * 0.9);
+          const dzdx = dHeight_dr * drdx;
+          const dzdy = dHeight_dr * drdy;
+
+          // 法線ベクトル（-dzdx, -dzdy, 1）
+          let nx = -dzdx;
+          let ny = -dzdy;
+          let nz = 1;
+          const nlen = Math.hypot(nx, ny, nz);
+          nx /= nlen; ny /= nlen; nz /= nlen;
+
+          // ランバート拡散反射
+          let diffuse = nx * lightDir.x + ny * lightDir.y + nz * lightDir.z;
+          diffuse = Math.max(0, diffuse);
+
+          // 反射ハイライト（簡易）
+          const rx = 2 * diffuse * nx - lightDir.x;
+          const ry = 2 * diffuse * ny - lightDir.y;
+          const rz = 2 * diffuse * nz - lightDir.z;
+          const viewDir = { x: 0, y: 0, z: 1 };
+          let spec = rx * viewDir.x + ry * viewDir.y + rz * viewDir.z;
+          spec = Math.max(0, spec);
+          spec = Math.pow(spec, 40);
+
+          // ベースカラー（深い青）
+          const baseR = 10;
+          const baseG = 80;
+          const baseB = 140;
+
+          const brightness = 0.3 + 0.7 * diffuse;
+          let rCol = baseR * brightness + 255 * spec;
+          let gCol = baseG * brightness + 255 * spec;
+          let bCol = baseB * brightness + 255 * spec;
+
+          // 中心ほど明るく
+          const vignette = 0.3 + 0.7 * (1 - r / maxR);
+          rCol *= vignette;
+          gCol *= vignette;
+          bCol *= vignette;
+
+          data[idx + 0] = Math.max(0, Math.min(255, rCol));
+          data[idx + 1] = Math.max(0, Math.min(255, gCol));
+          data[idx + 2] = Math.max(0, Math.min(255, bCol));
+          data[idx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function loop() {
+      t += 1;
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
