@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>立体的な円形波</title>
+<title>斜め視点の円形波</title>
 <style>
   body {
     margin: 0;
@@ -18,68 +18,43 @@
 </style>
 </head>
 <body>
-<canvas id="canvas" width="500" height="500"></canvas>
+<canvas id="canvas" width="600" height="400"></canvas>
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const w = canvas.width;
 const h = canvas.height;
 
 const cx = w / 2;
-const cy = h / 2;
-
-const img = ctx.createImageData(w, h);
+const cy = h / 2 + 50; // 視点を下げると斜め感UP
 
 const k = 0.08;
 const omega = 0.08;
-
 let t = 0;
-
-// 光の方向（斜め右上から）
-const light = { x: 0.6, y: -0.4, z: 1 };
 
 function height(x, y, t) {
   const dx = x - cx;
   const dy = y - cy;
-  const r = Math.sqrt(dx * dx + dy * dy);
+  const r = Math.sqrt(dx*dx + dy*dy);
   return Math.sin(k * r - omega * t);
 }
 
 function draw() {
-  const data = img.data;
+  ctx.clearRect(0, 0, w, h);
 
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-
+  for (let y = 0; y < h; y += 2) {
+    ctx.beginPath();
+    for (let x = 0; x < w; x++) {
       const z = height(x, y, t);
-
-      // 法線近似
-      const dzdx = height(x + 1, y, t) - height(x - 1, y, t);
-      const dzdy = height(x, y + 1, t) - height(x, y - 1, t);
-
-      // 法線ベクトル
-      const nx = -dzdx;
-      const ny = -dzdy;
-      const nz = 1;
-
-      // 正規化
-      const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-      const n = { x: nx/len, y: ny/len, z: nz/len };
-
-      // 光との内積
-      const brightness = Math.max(0, n.x*light.x + n.y*light.y + n.z*light.z);
-
-      const col = brightness * 255;
-
-      const index = (y * w + x) * 4;
-      data[index] = col * 0.4;     // R
-      data[index + 1] = col * 0.7; // G
-      data[index + 2] = 255;       // B（青）
-      data[index + 3] = 255;       // A
+      const y2 = y - z * 40; // ← 高さを画面に反映
+      if (x === 0) ctx.moveTo(x, y2);
+      else ctx.lineTo(x, y2);
     }
+    ctx.strokeStyle = "rgba(100,150,255,0.6)";
+    ctx.stroke();
   }
 
-  ctx.putImageData(img, 0, 0);
   t += 1;
   requestAnimationFrame(draw);
 }
