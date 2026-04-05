@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>立体的な円形波（濃い色・白背景）</title>
+<title>立体的な円形波（超コントラスト）</title>
 <style>
   body {
     margin: 0;
@@ -65,13 +65,13 @@ function draw() {
       const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
       const n = { x: nx/len, y: ny/len, z: nz/len };
 
-      const brightness = Math.max(0, n.x*light.x + n.y*light.y + n.z*light.z);
+      // ★ brightness を強調（2.5倍）
+      const brightness = Math.max(0, n.x*light.x + n.y*light.y + n.z*light.z) * 2.5;
 
-      // ★ 色を濃くしてコントラストUP
-      const base = 80;  // 影の濃さ（小さいほど濃い）
-      const rCol = base + brightness * 40;
-      const gCol = base + brightness * 80;
-      const bCol = 180 + brightness * 75;
+      // ★ 影を濃く、ハイライトを明るく
+      const rCol = 40 + brightness * 40;   // 濃い青 → 明るい水色
+      const gCol = 80 + brightness * 80;
+      const bCol = 160 + brightness * 95;
 
       const idx = (y * w + x) * 4;
       data[idx] = rCol;
