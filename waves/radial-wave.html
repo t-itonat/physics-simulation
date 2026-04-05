@@ -2,38 +2,39 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>立体的な円形波（白背景）</title>
+<title>立体的な円形波（フルスクリーン）</title>
 <style>
   body {
     margin: 0;
     background: #fff; /* 白背景 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    overflow: hidden;
   }
   canvas {
-    border: 1px solid #ccc;
+    display: block;
   }
 </style>
 </head>
 <body>
-<canvas id="canvas" width="600" height="400"></canvas>
+<canvas id="canvas"></canvas>
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const w = canvas.width;
-const h = canvas.height;
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-const cx = w / 2;
-const cy = h / 2 + 60; // 視点を下げて斜め感UP
-
-const k = 0.08;
-const omega = 0.08;
+const k = 0.04;     // 波の細かさ
+const omega = 0.06; // 進む速さ
 let t = 0;
 
-function height(x, y, t) {
+// 光の方向（右上から）
+const light = { x: 0.5, y: -0.3, z: 1 };
+
+function height(x, y, cx, cy, t) {
   const dx = x - cx;
   const dy = y - cy;
   const r = Math.sqrt(dx*dx + dy*dy);
@@ -41,26 +42,49 @@ function height(x, y, t) {
 }
 
 function draw() {
-  ctx.clearRect(0, 0, w, h);
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2 + 80; // 視点を少し下げると立体感UP
 
-  for (let y = 0; y < h; y += 2) {
-    ctx.beginPath();
+  const img = ctx.createImageData(w, h);
+  const data = img.data;
 
-    for (let x = 0; x < w; x++) {
-      const z = height(x, y, t);
-      const y2 = y - z * 40; // ← 高さを画面に反映
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
 
-      if (x === 0) ctx.moveTo(x, y2);
-      else ctx.lineTo(x, y2);
+      const z = height(x, y, cx, cy, t);
+
+      // 法線近似
+      const dzdx = height(x+1, y, cx, cy, t) - height(x-1, y, cx, cy, t);
+      const dzdy = height(x, y+1, cx, cy, t) - height(x, y-1, cx, cy, t);
+
+      // 法線ベクトル
+      const nx = -dzdx;
+      const ny = -dzdy;
+      const nz = 1;
+
+      // 正規化
+      const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+      const n = { x: nx/len, y: ny/len, z: nz/len };
+
+      // 光との内積
+      const brightness = Math.max(0, n.x*light.x + n.y*light.y + n.z*light.z);
+
+      // 青系の陰影
+      const rCol = 180 + brightness * 60;
+      const gCol = 200 + brightness * 40;
+      const bCol = 255;
+
+      const idx = (y * w + x) * 4;
+      data[idx] = rCol;
+      data[idx+1] = gCol;
+      data[idx+2] = bCol;
+      data[idx+3] = 255;
     }
-
-    // 高さに応じて色を変える（青の濃淡）
-    const shade = 180 + Math.sin((y + t) * 0.02) * 40;
-    ctx.strokeStyle = `rgb(${shade}, ${shade + 40}, 255)`;
-    ctx.lineWidth = 2;
-    ctx.stroke();
   }
 
+  ctx.putImageData(img, 0, 0);
   t += 1;
   requestAnimationFrame(draw);
 }
