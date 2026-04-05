@@ -3,16 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>波のシミュレーション</title>
-
-  <!-- Plotly CDN -->
+  <title>円形波シミュレーション</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background: #f8fafc;
+      background: white;
       font-family: sans-serif;
     }
     #graph {
@@ -23,67 +19,86 @@
 </head>
 
 <body>
-
   <div id="graph"></div>
 
   <script>
-    // 波のパラメータ
+    // パラメータ設定
     const A = 1;
     const k = 2 * Math.PI / 5;
-    const omega = 0.2;
+    const omega = 0.1; // 少しゆっくりに
+    const gridSize = 80;
 
-    // x軸
+    // グリッド生成
     const x = [];
-    for (let i = 0; i <= 200; i++) {
-      x.push(i / 10);
-    }
+    const y = [];
+    for (let i = -10; i <= 10; i += 20 / gridSize) x.push(i);
+    for (let j = -10; j <= 10; j += 20 / gridSize) y.push(j);
 
     // フレーム生成
     const frames = [];
     for (let t = 0; t < 200; t++) {
-      const y = x.map(xi => A * Math.sin(k * xi - omega * t));
-      frames.push({
-        name: t.toString(),
-        data: [{ x: x, y: y }]
-      });
+      const z = [];
+      for (let i = 0; i < y.length; i++) {
+        const row = [];
+        for (let j = 0; j < x.length; j++) {
+          const r = Math.hypot(x[j], y[i]);
+          row.push(A * Math.sin(k * r - omega * t));
+        }
+        z.push(row);
+      }
+      frames.push({ name: t.toString(), data: [{ z: z }] });
     }
 
     // 初期波形
-    const y0 = x.map(xi => A * Math.sin(k * xi));
+    const z0 = [];
+    for (let i = 0; i < y.length; i++) {
+      const row = [];
+      for (let j = 0; j < x.length; j++) {
+        const r = Math.hypot(x[j], y[i]);
+        row.push(A * Math.sin(k * r));
+      }
+      z0.push(row);
+    }
 
     const data = [{
+      type: "surface",
       x: x,
-      y: y0,
-      mode: "lines",
-      line: { color: "royalblue", width: 3 }
+      y: y,
+      z: z0,
+      colorscale: "Viridis",
+      showscale: false,
+      contours: { z: { show: true, color: "gray" } }
     }];
 
     const layout = {
-      title: "波の伝搬シミュレーション",
-      xaxis: { range: [0, 20], title: "x" },
-      yaxis: { range: [-1.5, 1.5], title: "y" },
-      margin: { t: 50, l: 50, r: 20, b: 50 },
+      title: "円形波シミュレーション",
+      scene: {
+        xaxis: { title: "x" },
+        yaxis: { title: "y" },
+        zaxis: { title: "z" },
+        camera: {
+          eye: { x: 1.2, y: 1.2, z: 0.8 } // 真上ではなく斜め視点
+        },
+        bgcolor: "white"
+      },
+      margin: { t: 50, l: 0, r: 0, b: 0 },
       updatemenus: [{
         type: "buttons",
         showactive: false,
         buttons: [{
           label: "▶ 再生",
           method: "animate",
-          args: [null, { frame: { duration: 30, redraw: false }, fromcurrent: true }]
+          args: [null, { frame: { duration: 60, redraw: false }, fromcurrent: true }]
         }]
       }]
     };
 
-    // ★ ロゴだけ確実に消す設定（最新版）
-    const config = {
-      displaylogo: false,
-      modeBarButtonsToRemove: ["toImage"]
-    };
+    const config = { displaylogo: false };
 
     Plotly.newPlot("graph", data, layout, config).then(() => {
       Plotly.addFrames("graph", frames);
     });
   </script>
-
 </body>
 </html>
+
