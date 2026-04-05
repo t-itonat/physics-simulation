@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<title>斜め視点の円形波</title>
+<title>立体的な円形波（白背景）</title>
 <style>
   body {
     margin: 0;
-    background: #000;
+    background: #fff; /* 白背景 */
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
   }
   canvas {
-    border: 1px solid #444;
+    border: 1px solid #ccc;
   }
 </style>
 </head>
@@ -27,7 +27,7 @@ const w = canvas.width;
 const h = canvas.height;
 
 const cx = w / 2;
-const cy = h / 2 + 50; // 視点を下げると斜め感UP
+const cy = h / 2 + 60; // 視点を下げて斜め感UP
 
 const k = 0.08;
 const omega = 0.08;
@@ -45,13 +45,19 @@ function draw() {
 
   for (let y = 0; y < h; y += 2) {
     ctx.beginPath();
+
     for (let x = 0; x < w; x++) {
       const z = height(x, y, t);
       const y2 = y - z * 40; // ← 高さを画面に反映
+
       if (x === 0) ctx.moveTo(x, y2);
       else ctx.lineTo(x, y2);
     }
-    ctx.strokeStyle = "rgba(100,150,255,0.6)";
+
+    // 高さに応じて色を変える（青の濃淡）
+    const shade = 180 + Math.sin((y + t) * 0.02) * 40;
+    ctx.strokeStyle = `rgb(${shade}, ${shade + 40}, 255)`;
+    ctx.lineWidth = 2;
     ctx.stroke();
   }
 
